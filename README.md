@@ -191,7 +191,7 @@ npm run build
 # Subir la carpeta dist/ o conectar el repo directamente
 ```
 
-> La URL pública estará disponible en el README una vez realizado el deploy.
+> URL: https://reto-tecnico-front-end-web-develope.vercel.app/login
 
 ---
 

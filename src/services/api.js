@@ -1,12 +1,4 @@
-// Simulated API delay
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-/**
- * Simulates POST /api/login
- */
 export async function apiLogin(email, password) {
-  await delay(800);
-
   if (email === 'admin@mail.com' && password === 'supersecret') {
     return {
       ok: true,
@@ -18,69 +10,143 @@ export async function apiLogin(email, password) {
       },
     };
   }
-
+ 
   return {
     ok: false,
     error: 'Credenciales inválidas',
   };
 }
-
+ 
+// Validates a single parsed row and returns an error details object (or null if valid)
+function validateRow(row) {
+  const details = {};
+ 
+  if (!row.name || row.name.trim() === '') {
+    details.name = "El campo 'name' no puede estar vacío.";
+  } else if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(row.name.trim())) {
+    details.name = "El campo 'name' tiene un formato inválido.";
+  }
+ 
+  if (!row.email || row.email.trim() === '') {
+    details.email = "El campo 'email' no puede estar vacío.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email.trim())) {
+    details.email = "El formato del campo 'email' es inválido.";
+  }
+ 
+  if (row.age === undefined || row.age === '') {
+    details.age = "El campo 'age' no puede estar vacío.";
+  } else if (isNaN(Number(row.age)) || Number(row.age) <= 0) {
+    details.age = "El campo 'age' debe ser un número positivo.";
+  }
+ 
+  return Object.keys(details).length > 0 ? details : null;
+}
+ 
+// Splits a CSV line respecting quoted values and a given separator
+function splitLine(line, sep) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+ 
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === sep && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+ 
+// Strips invisible/control characters (including Windows \r) but keeps accented chars
+function cleanStr(s) {
+  return s.replace(/\r/g, '').replace(/^\uFEFF/, '').trim();
+}
+ 
+// Parses a CSV file and returns { success, errors }
+async function parseCSV(file) {
+  const text = await file.text();
+ 
+  // Normalize line endings: handle \r\n (Windows) and \r (old Mac)
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = normalized.trim().split('\n');
+ 
+  if (lines.length < 2) {
+    return { success: [], errors: [] };
+  }
+ 
+  // Strip BOM from header
+  const rawHeader = cleanStr(lines[0]);
+ 
+  // Auto-detect separator: semicolon (Excel ES/PT) or comma
+  const sep = rawHeader.includes(';') ? ';' : ',';
+ 
+  const headers = splitLine(rawHeader, sep).map((h) => cleanStr(h).toLowerCase());
+ 
+  console.log('[parseCSV] separator:', JSON.stringify(sep));
+  console.log('[parseCSV] headers:', headers);
+  console.log('[parseCSV] total data lines:', lines.length - 1);
+ 
+  const success = [];
+  const errors = [];
+ 
+  for (let i = 1; i < lines.length; i++) {
+    const line = cleanStr(lines[i]);
+    if (!line) continue;
+ 
+    const values = splitLine(line, sep).map(cleanStr);
+    const row = {};
+    headers.forEach((header, idx) => {
+      row[header] = values[idx] ?? '';
+    });
+ 
+    console.log(`[parseCSV] row ${i + 1}:`, row);
+ 
+    const rowNumber = i + 1; // 1-based including header row
+    const validationErrors = validateRow(row);
+ 
+    if (validationErrors) {
+      errors.push({
+        row: rowNumber,
+        data: row,
+        details: validationErrors,
+      });
+    } else {
+      success.push({
+        id: success.length + 1,
+        name: row.name.trim(),
+        email: row.email.trim(),
+        age: Number(row.age),
+      });
+    }
+  }
+ 
+  console.log('[parseCSV] success:', success.length, '| errors:', errors.length);
+ 
+  return { success, errors };
+}
+ 
 /**
- * Simulates POST /api/upload
+ * POST /api/upload — reads and validates the actual CSV file
  */
 export async function apiUpload(file) {
-  await delay(1200);
-
-  // Parse CSV rows count for realistic simulation
-  const text = await file.text();
-  const rows = text.trim().split('\n').slice(1); // skip header
-
-  // Simulate: most rows succeed, some have errors
-  const success = [
-    { id: 1, name: 'Juan Pérez', email: 'juan.perez@example.com', age: 28 },
-    { id: 2, name: 'María García', email: 'maria.garcia@example.com', age: 34 },
-    { id: 3, name: 'Carlos López', email: 'carlos.lopez@example.com', age: 22 },
-    { id: 5, name: 'Ana Martínez', email: 'ana.martinez@example.com', age: 45 },
-    { id: 6, name: 'Luis Rodríguez', email: 'luis.rodriguez@example.com', age: 31 },
-  ];
-
-  const errors = [
-    {
-      row: 4,
-      data: { name: 'Testino Dipenbea', email: 'testim', age: 25 },
-      details: {
-        email: "El formato del campo 'email' es inválido.",
-      },
-    },
-    {
-      row: 12,
-      data: { name: '', email: 'mario@mail.com', age: 'abc' },
-      details: {
-        name: "El campo 'name' no puede estar vacío.",
-        age: "El campo 'age' debe ser un número positivo.",
-      },
-    },
-    {
-      row: 11,
-      data: { name: '123', email: 'mario@mail.com', age: 'abc' },
-      details: {
-        name: "El campo 'name' tiene un formato inválido.",
-        age: "El campo 'age' debe ser un número positivo.",
-      },
-    },
-  ];
-
+  const { success, errors } = await parseCSV(file);
+ 
   return {
     ok: true,
     data: { success, errors },
   };
 }
-
+ 
 /**
- * Simulates POST /api/retry — retries a single row
+ * POST /api/retry — retries a single row
  */
 export async function apiRetryRow(rowData) {
-  await delay(600);
   return {
     ok: true,
     data: {

@@ -8,13 +8,24 @@ interface ResultsViewProps {
   onNewFile: () => void;
 }
 
+const STORAGE_KEY = 'upload_results';
+
 export default function ResultsView({ data, onNewFile }: ResultsViewProps) {
   const [errors, setErrors] = useState<CsvError[]>(data.errors);
   const [resolved, setResolved] = useState<ResolvedError[]>([]);
 
   const handleRetrySuccess = (row: number, newRecord: CsvRecord) => {
-    setResolved(r => [...r, { row, record: newRecord }]);
-    setErrors(e => e.filter(err => err.row !== row));
+    const newResolved = [...resolved, { row, record: newRecord }];
+    const newErrors = errors.filter(err => err.row !== row);
+
+    setResolved(newResolved);
+    setErrors(newErrors);
+
+    const updatedData: UploadResult = {
+      success: [...data.success, ...newResolved.map(r => r.record)],
+      errors: newErrors,
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
   };
 
   const totalSuccess = data.success.length + resolved.length;

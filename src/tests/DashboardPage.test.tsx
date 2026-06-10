@@ -32,9 +32,9 @@ describe('DashboardPage', () => {
 
   it('shows results view after successful upload', async () => {
     vi.spyOn(api, 'apiUpload').mockResolvedValue({
-      ok: true,
+      ok: true as const,
       data: {
-        success: [{ id: 1, name: 'Juan', email: 'juan@test.com', age: 28 }],
+        success: [{ name: 'Juan', email: 'juan@test.com', age: 28 }],
         errors: [],
       },
     });
@@ -50,7 +50,7 @@ describe('DashboardPage', () => {
   });
 
   it('shows error banner on failed upload', async () => {
-    vi.spyOn(api, 'apiUpload').mockResolvedValue({ ok: false, error: 'Formato inválido' });
+    vi.spyOn(api, 'apiUpload').mockResolvedValue({ ok: false as const, error: 'Formato inválido' });
 
     renderDashboard();
     const file = new File(['name,email,age'], 'test.csv', { type: 'text/csv' });
@@ -64,8 +64,8 @@ describe('DashboardPage', () => {
 
   it('returns to upload form when "New File" is clicked', async () => {
     vi.spyOn(api, 'apiUpload').mockResolvedValue({
-      ok: true,
-      data: { success: [{ id: 1, name: 'Juan', email: 'j@j.com', age: 20 }], errors: [] },
+      ok: true as const,
+      data: { success: [{ name: 'Juan', email: 'j@j.com', age: 20 }], errors: [] },
     });
 
     renderDashboard();

@@ -2,16 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ResultsView from '../components/ResultsView';
 import * as api from '../services/api';
+import { UploadResult } from '../types/upload';
 
-const mockData = {
+const mockData: UploadResult = {
   success: [
-    { id: 1, name: 'Juan Pérez', email: 'juan@test.com', age: 28 },
-    { id: 2, name: 'Ana García', email: 'ana@test.com', age: 34 },
+    { name: 'Juan Pérez', email: 'juan@test.com', age: 28 },
+    { name: 'Ana García', email: 'ana@test.com', age: 34 },
   ],
   errors: [
     {
       row: 4,
-      data: { name: 'Testino', email: 'bad-email', age: 25 },
+      data: { name: 'Testino', email: 'bad-email', age: '25' },
       details: { email: "El formato del campo 'email' es inválido." },
     },
   ],
@@ -40,7 +41,7 @@ describe('ResultsView', () => {
   it('removes error row from list after successful retry', async () => {
     vi.spyOn(api, 'apiRetryRow').mockResolvedValue({
       ok: true,
-      data: { id: 999, name: 'Testino', email: 'testino@valid.com', age: 25 },
+      data: { name: 'Testino', email: 'testino@valid.com', age: 25 },
     });
 
     render(<ResultsView data={mockData} onNewFile={vi.fn()} />);
@@ -56,7 +57,7 @@ describe('ResultsView', () => {
   it('shows "all clear" message when all errors are resolved', async () => {
     vi.spyOn(api, 'apiRetryRow').mockResolvedValue({
       ok: true,
-      data: { id: 999, name: 'Fixed', email: 'fixed@mail.com', age: 25 },
+      data: { name: 'Fixed', email: 'fixed@mail.com', age: 25 },
     });
 
     render(<ResultsView data={mockData} onNewFile={vi.fn()} />);

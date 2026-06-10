@@ -3,13 +3,16 @@ import { apiUpload } from '../services/api';
 import UploadForm from '../components/UploadForm';
 import ResultsView from '../components/ResultsView';
 import styles from './DashboardPage.module.css';
+import { UploadResult } from '../types/upload';
+
+type UploadState = 'idle' | 'uploading' | 'results' | 'error';
 
 export default function DashboardPage() {
-  const [state, setState] = useState('idle'); // idle | uploading | results | error
-  const [results, setResults] = useState(null);
-  const [uploadError, setUploadError] = useState('');
+  const [state, setState] = useState<UploadState>('idle');
+  const [results, setResults] = useState<UploadResult | null>(null);
+  const [uploadError, setUploadError] = useState<string>('');
 
-  const handleUpload = async (file) => {
+  const handleUpload = async (file: File) => {
     setState('uploading');
     setUploadError('');
     try {
@@ -18,9 +21,9 @@ export default function DashboardPage() {
         setResults(res.data);
         setState('results');
       } else {
-        setUploadError(res.error || 'Error al procesar el archivo.');
-        setState('error');
-      }
+      setUploadError(res.error);  // ← ¿tienes esto?
+      setState('error');
+    }
     } catch {
       setUploadError('Error de conexión. Por favor intente de nuevo.');
       setState('error');

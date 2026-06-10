@@ -1,24 +1,28 @@
 import { useState, useRef } from 'react';
 import styles from './UploadForm.module.css';
 
-export default function UploadForm({ onUpload, loading }) {
-  const [file, setFile] = useState(null);
-  const [dragOver, setDragOver] = useState(false);
-  const inputRef = useRef();
+interface UploadFormProps {
+  onUpload: (file: File) => void;
+  loading: boolean;
+}
+export default function UploadForm({ onUpload, loading }: UploadFormProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (f) => {
+  const handleFile = (f: File | null | undefined) => {
     if (f && f.name.endsWith('.csv')) {
       setFile(f);
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
     handleFile(e.dataTransfer.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (file) onUpload(file);
   };
@@ -27,14 +31,14 @@ export default function UploadForm({ onUpload, loading }) {
     <form onSubmit={handleSubmit} className={styles.wrapper} data-testid="upload-form">
       <div
         className={`${styles.dropZone} ${dragOver ? styles.dragOver : ''} ${file ? styles.hasFile : ''}`}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        onClick={() => !loading && inputRef.current.click()}
+        onClick={() => !loading && inputRef.current?.click()}
         role="button"
         tabIndex={0}
         aria-label="Zona de carga de archivos CSV"
-        onKeyDown={e => e.key === 'Enter' && inputRef.current.click()}
+        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => e.key === 'Enter' && inputRef.current?.click()}
         data-testid="drop-zone"
       >
         <input
@@ -42,7 +46,7 @@ export default function UploadForm({ onUpload, loading }) {
           type="file"
           accept=".csv"
           className={styles.hidden}
-          onChange={e => handleFile(e.target.files[0])}
+          onChange={e => handleFile(e.target.files?.[0])}
           data-testid="file-input"
           disabled={loading}
         />

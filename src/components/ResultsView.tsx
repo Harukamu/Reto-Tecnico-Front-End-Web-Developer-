@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import ErrorRow from './ErrorRow';
 import styles from './ResultsView.module.css';
+import { CsvError, CsvRecord, UploadResult, ResolvedError } from '../types/upload';
 
-export default function ResultsView({ data, onNewFile }) {
-  const [errors, setErrors] = useState(data.errors);
-  const [resolved, setResolved] = useState([]);
+interface ResultsViewProps {
+  data: UploadResult;
+  onNewFile: () => void;
+}
 
-  const handleRetrySuccess = (row, newRecord) => {
+export default function ResultsView({ data, onNewFile }: ResultsViewProps) {
+  const [errors, setErrors] = useState<CsvError[]>(data.errors);
+  const [resolved, setResolved] = useState<ResolvedError[]>([]);
+
+  const handleRetrySuccess = (row: number, newRecord: CsvRecord) => {
     setResolved(r => [...r, { row, record: newRecord }]);
     setErrors(e => e.filter(err => err.row !== row));
   };

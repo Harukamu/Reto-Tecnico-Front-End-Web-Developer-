@@ -99,26 +99,26 @@ Tests       27 passed (27)
 ```
 src/
 ├── context/
-│   └── AuthContext.jsx       # Estado de autenticación global
+│   └── AuthContext.tsx       # Estado de autenticación global
 ├── services/
-│   └── api.js                # Simulación de endpoints REST
+│   └── api.ts                # Simulación de endpoints REST
 ├── components/
-│   ├── Layout.jsx             # Header + contenedor principal
-│   ├── ProtectedRoute.jsx     # Guard de ruta para admin
-│   ├── UploadForm.jsx         # Formulario con drag & drop
-│   ├── ResultsView.jsx        # Resumen de carga + lista de errores
-│   └── ErrorRow.jsx           # Fila editable con botón Retry
+│   ├── Layout.tsx             # Header + contenedor principal
+│   ├── ProtectedRoute.tsx     # Guard de ruta para admin
+│   ├── UploadForm.tsx         # Formulario con drag & drop
+│   ├── ResultsView.tsx        # Resumen de carga + lista de errores
+│   └── ErrorRow.tsx           # Fila editable con botón Retry
 ├── pages/
-│   ├── LoginPage.jsx          # /login
-│   └── DashboardPage.jsx      # / (protegida)
+│   ├── LoginPage.tsx          # /login
+│   └── DashboardPage.tsx      # / (protegida)
 ├── tests/
-│   ├── LoginPage.test.jsx
-│   ├── UploadForm.test.jsx
-│   ├── ResultsView.test.jsx
-│   ├── DashboardPage.test.jsx
-│   └── ProtectedRoute.test.jsx
-├── App.jsx                    # Configuración de rutas
-├── main.jsx                   # Entry point
+│   ├── LoginPage.test.tsx
+│   ├── UploadForm.test.tsx
+│   ├── ResultsView.test.tsx
+│   ├── DashboardPage.test.tsx
+│   └── ProtectedRoute.test.tsx
+├── App.tsx                    # Configuración de rutas
+├── main.tsx                   # Entry point
 └── index.css                  # Variables CSS globales
 ```
 

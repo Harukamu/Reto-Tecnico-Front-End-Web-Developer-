@@ -30,7 +30,7 @@ describe('LoginPage', () => {
 
   it('shows error message with invalid credentials', async () => {
     vi.spyOn(api, 'apiLogin').mockResolvedValue({
-      ok: false,
+      ok: false as const,
       error: 'Credenciales inválidas',
     });
 

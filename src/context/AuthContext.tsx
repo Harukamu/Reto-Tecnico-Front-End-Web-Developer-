@@ -1,18 +1,19 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { User, AuthContextType } from '../types/auth';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
     try {
       const stored = localStorage.getItem('auth_user');
-      return stored ? JSON.parse(stored) : null;
+      return stored ? (JSON.parse(stored) as User) : null;
     } catch {
       return null;
     }
   });
 
-  const login = (userData) => {
+  const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('auth_user', JSON.stringify(userData));
     localStorage.setItem('auth_token', `mock-jwt-token-${Date.now()}`);

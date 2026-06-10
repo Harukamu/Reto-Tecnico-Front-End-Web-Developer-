@@ -1,19 +1,31 @@
 import { useState } from 'react';
 import { apiRetryRow } from '../services/api';
 import styles from './ErrorRow.module.css';
+import { CsvError, CsvRecord, FieldErrors, RetryResponse } from '../types/upload';
 
-export default function ErrorRow({ error, onRetrySuccess }) {
-  const [fields, setFields] = useState({
+interface ErrorRowProps {
+  error: CsvError;
+  onRetrySuccess: (row: number, record: CsvRecord) => void;
+}
+
+interface EditableFields {
+  name: string;
+  email: string;
+  age: string;
+}
+
+export default function ErrorRow({ error, onRetrySuccess }: ErrorRowProps) {
+  const [fields, setFields] = useState<EditableFields>({
     name: error.data?.name ?? '',
     email: error.data?.email ?? '',
     age: error.data?.age ?? '',
   });
-  const [loading, setLoading] = useState(false);
-  const [retried, setRetried] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState(error.details || {});
+  const [loading, setLoading] = useState<boolean>(false);
+  const [retried, setRetried] = useState<boolean>(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>(error.details || {});
 
-  const validate = () => {
-    const errs = {};
+  const validate = (): FieldErrors => {
+    const errs: FieldErrors = {};
     if (!fields.name.trim()) errs.name = "El campo 'name' no puede estar vacío.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) errs.email = "El formato del campo 'email' es inválido.";
     const ageNum = Number(fields.age);
@@ -32,7 +44,7 @@ export default function ErrorRow({ error, onRetrySuccess }) {
     setFieldErrors({});
     setLoading(true);
     try {
-      const res = await apiRetryRow({ ...fields, age: Number(fields.age) });
+      const res: RetryResponse = await apiRetryRow({ ...fields, age: Number(fields.age) });
       if (res.ok) {
         setRetried(true);
         onRetrySuccess(error.row, res.data);
@@ -57,7 +69,7 @@ export default function ErrorRow({ error, onRetrySuccess }) {
           <input
             className={`${styles.input} ${fieldErrors.name ? styles.inputError : ''}`}
             value={fields.name}
-            onChange={e => setFields(f => ({ ...f, name: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFields(f => ({ ...f, name: e.target.value }))}
             placeholder="Nombre"
             disabled={loading}
             data-testid={`name-input-${error.row}`}
@@ -70,7 +82,7 @@ export default function ErrorRow({ error, onRetrySuccess }) {
           <input
             className={`${styles.input} ${fieldErrors.email ? styles.inputError : ''}`}
             value={fields.email}
-            onChange={e => setFields(f => ({ ...f, email: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFields(f => ({ ...f, email: e.target.value }))}
             placeholder="email@ejemplo.com"
             disabled={loading}
             data-testid={`email-input-${error.row}`}

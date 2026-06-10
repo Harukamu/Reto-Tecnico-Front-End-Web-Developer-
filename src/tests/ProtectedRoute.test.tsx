@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
-import { AuthProvider, useAuth } from '../context/AuthContext';
-import { apiLogin, apiUpload, apiRetryRow } from '../services/api';
-
+import { AuthProvider, } from '../context/AuthContext';
+import { apiLogin, apiRetryRow } from '../services/api';
+import {User} from '../types/auth';
 // --- ProtectedRoute ---
-const makeAuthState = (user) => {
+const makeAuthState = (user: User | null) => {
   // Preset localStorage before render so AuthProvider picks it up
   if (user) localStorage.setItem('auth_user', JSON.stringify(user));
   else localStorage.removeItem('auth_user');
@@ -58,6 +58,7 @@ describe('apiLogin', () => {
   it('returns ok: true for valid credentials', async () => {
     const res = await apiLogin('admin@mail.com', 'supersecret');
     expect(res.ok).toBe(true);
+    if (!res.ok) throw new Error('Expected login to succeed');
     expect(res.data.role).toBe('admin');
     expect(res.data.email).toBe('admin@mail.com');
   });
@@ -65,11 +66,13 @@ describe('apiLogin', () => {
   it('returns ok: false for invalid credentials', async () => {
     const res = await apiLogin('wrong@mail.com', 'badpass');
     expect(res.ok).toBe(false);
+    if (res.ok) throw new Error('Expected login to fail');
     expect(res.error).toBeTruthy();
   });
 
   it('returns "Credenciales inválidas" error message', async () => {
     const res = await apiLogin('bad@mail.com', 'nope');
+    if (res.ok) throw new Error('Expected login to fail');
     expect(res.error).toMatch(/credenciales inv/i);
   });
 });

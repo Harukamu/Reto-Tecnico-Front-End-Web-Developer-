@@ -6,10 +6,16 @@ import styles from './DashboardPage.module.css';
 import { UploadResult } from '../types/upload';
 
 type UploadState = 'idle' | 'uploading' | 'results' | 'error';
+const STORAGE_KEY = 'upload_results';
 
 export default function DashboardPage() {
-  const [state, setState] = useState<UploadState>('idle');
-  const [results, setResults] = useState<UploadResult | null>(null);
+  const [state, setState] = useState<UploadState>(() => {
+    return sessionStorage.getItem(STORAGE_KEY) ? 'results' : 'idle';
+  });
+  const [results, setResults] = useState<UploadResult | null>(() => {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
   const [uploadError, setUploadError] = useState<string>('');
 
   const handleUpload = async (file: File) => {
@@ -18,10 +24,11 @@ export default function DashboardPage() {
     try {
       const res = await apiUpload(file);
       if (res.ok) {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(res.data));
         setResults(res.data);
         setState('results');
       } else {
-      setUploadError(res.error);  // ← ¿tienes esto?
+      setUploadError(res.error);  
       setState('error');
     }
     } catch {
@@ -31,6 +38,7 @@ export default function DashboardPage() {
   };
 
   const handleNewFile = () => {
+    sessionStorage.removeItem(STORAGE_KEY);
     setState('idle');
     setResults(null);
     setUploadError('');

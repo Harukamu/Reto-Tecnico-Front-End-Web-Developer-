@@ -30,7 +30,7 @@ export async function apiLogin(email: string, password: string): Promise<LoginRe
   return { ok: false, error: 'Credenciales inválidas' };
 }
 
-// --- CSV parsing helpers ---
+// CSV parsing helpers 
 
 function validateRow(row: Record<string, string>): FieldErrors | null {
   const details: FieldErrors = {};

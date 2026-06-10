@@ -52,7 +52,7 @@ describe('LoginPage', () => {
 
   it('calls apiLogin with entered credentials', async () => {
     const spy = vi.spyOn(api, 'apiLogin').mockResolvedValue({
-      ok: false,
+      ok: false as const,
       error: 'Credenciales inválidas',
     });
 
@@ -68,7 +68,7 @@ describe('LoginPage', () => {
 
   it('disables the login button while loading', async () => {
     vi.spyOn(api, 'apiLogin').mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ ok: false, error: 'err' }), 500))
+      () => new Promise(resolve => setTimeout(() => resolve({ ok: false as const, error: 'err' }), 500))
     );
 
     renderLogin();
